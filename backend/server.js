@@ -3,7 +3,6 @@ const multer = require('multer');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
-const { exec } = require('child_process');
 
 const app = express();
 app.use(cors());
@@ -46,30 +45,6 @@ app.post('/upload', upload.single('model'), (req, res) => {
   res.json({ fileUrl });
 });
 
-// File conversion endpoint (OBJ to STL or STL to OBJ)
-app.post('/convert', upload.single('model'), (req, res) => {
-  const inputFilePath = path.join(__dirname, 'uploads', req.file.filename);
-  const outputFilePath =
-    req.file.filename.endsWith('.obj')
-      ? inputFilePath.replace('.obj', '.stl')
-      : inputFilePath.replace('.stl', '.obj');
-
-  // Run Assimp CLI command for conversion
-  const command = `assimp export ${inputFilePath} ${outputFilePath}`;
-  exec(command, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`Error during conversion: ${error.message}`);
-      return res.status(500).json({ error: 'Conversion failed.' });
-    }
-
-    const convertedFileUrl = `http://localhost:5000/uploads/${path.basename(
-      outputFilePath
-    )}`;
-    res.json({ convertedFileUrl });
-  });
-});
-
-// Model retrieval endpoint
 // Model retrieval endpoint
 app.get('/models', (req, res) => {
   const metadataPath = path.join(__dirname, 'metadata.json');
@@ -79,7 +54,7 @@ app.get('/models', (req, res) => {
     // Map metadata to include full URLs
     const modelsWithFullUrl = metadata.map((model) => ({
       ...model,
-      url: `http://localhost:5000/uploads/${model.filename}`, // Add this line
+      url: `http://localhost:5000/uploads/${model.filename}`,
     }));
 
     res.json(modelsWithFullUrl);
@@ -112,12 +87,6 @@ app.delete('/models/:filename', (req, res) => {
     res.status(500).json({ error: 'Failed to delete model' });
   }
 });
-
-const handleModelClick = (model) => {
-  setFileUrl(model.url); // Ensure this is a valid URL
-  setFileType(model.originalname.split('.').pop().toLowerCase());
-  setUploaded(true);
-};
 
 // Serve a specific model by filename
 app.get('/uploads/:filename', (req, res) => {

@@ -4,7 +4,7 @@ import { OrbitControls } from '@react-three/drei';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import axios from 'axios';
-import Tooltip from './Tooltip';
+import Tooltip from './ToolTip';
 import logo from '../assets/images/logo.png'; // Adjust the path as needed
 import * as THREE from 'three';
 import { Orbit, ZoomIn, Move, RefreshCw, Upload } from 'lucide-react';
