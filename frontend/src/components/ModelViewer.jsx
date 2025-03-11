@@ -4,9 +4,10 @@ import { OrbitControls } from '@react-three/drei';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import axios from 'axios';
-import * as THREE from 'three';
 import Tooltip from './Tooltip';
 import logo from '../assets/images/logo.png'; // Adjust the path as needed
+import * as THREE from 'three';
+import { Orbit, ZoomIn, Move, RefreshCw, Upload } from 'lucide-react';
 
 function Model({ url, type }) {
   const meshRef = useRef();
@@ -56,7 +57,7 @@ export default function ModelViewer() {
   const [fileUrl, setFileUrl] = useState('');
   const [fileType, setFileType] = useState('');
   const controlsRef = useRef();
-  const [activeTool, setActiveTool] = useState(null); // Track the active tool
+  const [activeTool, setActiveTool] = useState(null);
   const [uploaded, setUploaded] = useState(false);
   const [models, setModels] = useState([]);
 
@@ -72,7 +73,7 @@ export default function ModelViewer() {
       setFileUrl(res.data.fileUrl);
       setFileType(file.name.split('.').pop().toLowerCase());
       setUploaded(true);
-      fetchModels(); // Fetch models after uploading
+      fetchModels();
     } catch (err) {
       console.error(err);
       alert('Upload failed.');
@@ -81,11 +82,11 @@ export default function ModelViewer() {
 
   const handleReset = () => {
     controlsRef.current.reset();
-    setActiveTool(null); // Reset active tool
+    setActiveTool(null);
   };
 
   const handleToolChange = (tool) => {
-    setActiveTool(tool); // Set the active tool
+    setActiveTool(tool);
   };
 
   const fetchModels = async () => {
@@ -100,7 +101,7 @@ export default function ModelViewer() {
   const handleDeleteModel = async (filename) => {
     try {
       await axios.delete(`http://localhost:5000/models/${filename}`);
-      fetchModels(); // Refresh the models list after deletion
+      fetchModels();
       alert('Model deleted successfully');
     } catch (err) {
       console.error(err);
@@ -109,44 +110,47 @@ export default function ModelViewer() {
   };
 
   useEffect(() => {
-    fetchModels(); // Fetch models on component mount
+    fetchModels();
   }, []);
 
   const handleModelClick = (model) => {
-    setFileUrl(model.url); // Use the full URL provided by backend
+    setFileUrl(model.url);
     setFileType(model.originalname.split('.').pop().toLowerCase());
     setUploaded(true);
   };
 
   return (
-    <div style={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      
+    <div className="flex flex-col w-screen h-screen bg-gray-100">
+
       {/* Top Navigation Bar */}
-      <div style={{ width: '100%', padding: '1rem', backgroundColor: '#f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <img src={logo} alt="Logo" style={{ height: '50px' }} />
+      <div className="flex items-center justify-between px-6 py-4 bg-white shadow-lg border-b border-gray-200">
+        <img src={logo} alt="Logo" className="w-[170px] h-auto" />
+
         {uploaded && (
-          <input
-            type="file"
-            accept=".stl,.obj"
-            onChange={handleUpload}
-            style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
-          />
+          <label className="flex items-center gap-2 px-4 py-2 text-white bg-[#00BFFF] rounded-md cursor-pointer hover:bg-blue-700 transition duration-200 shadow-md">
+            <Upload size={20} /> Upload Model
+            <input
+              type="file"
+              accept=".stl,.obj"
+              onChange={handleUpload}
+              className="hidden"
+            />
+          </label>
         )}
       </div>
 
       {/* Main Content */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'row' }}>
-        
-        {/* Uploaded Models List */}
-        <div style={{ width: '20%', padding: '1rem', backgroundColor: '#f0f0f0', overflowY: 'auto' }}>
-          <h2>Uploaded Models:</h2>
+      <div className="flex flex-1">
+        {/* Uploaded Models Section */}
+        <div className="w-1/5 p-4 bg-white shadow-md overflow-y-auto">
+          <h2 className="mb-4 text-lg font-semibold">Uploaded Models</h2>
           <ul>
             {models.map((model) => (
-              <li key={model.filename} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <button onClick={() => handleModelClick(model)} style={{ padding: '0.5rem', borderRadius: '4px', border: 'none', backgroundColor: '#f0f0f0' }}>
+              <li key={model.filename} className="flex items-center justify-between mb-4">
+                <button onClick={() => handleModelClick(model)} className="px-3 py-2 text-white bg-[#00BFFF] rounded-md hover:bg-blue-700">
                   {model.originalname}
                 </button>
-                <button onClick={() => handleDeleteModel(model.filename)} style={{ padding: '0.5rem', borderRadius: '4px', borderColor: '#ff4d4d', color: '#ff4d4d' }}>
+                <button onClick={() => handleDeleteModel(model.filename)} className="px-3 py-2 text-red-600 border border-red-600 rounded-md hover:bg-red-100">
                   Delete
                 </button>
               </li>
@@ -155,77 +159,71 @@ export default function ModelViewer() {
         </div>
 
         {/* Model Viewer */}
-        <div style={{ flex: 1, position: 'relative' }}>
+        <div className="flex-grow p-4 bg-gray-50 shadow-md relative">
           {!uploaded || !fileUrl ? (
-            <div style={{display:'flex',justifyContent:'center',alignItems:'center',height:'100%'}}>
-              <input
-                type="file"
-                accept=".stl,.obj"
-                onChange={handleUpload}
-                style={{ padding:'1rem',borderRadius:'4px',border:'1px solid #ccc'}}
-              />
+            <div className="flex flex-col items-center justify-center h-full">
+              <label className="flex items-center gap-2 px-6 py-3 text-white bg-[#00BFFF] rounded-lg cursor-pointer hover:bg-blue-400 transition duration-200 shadow-md text-lg">
+                <Upload size={20} /> Upload Model
+                <input
+                  type="file"
+                  accept=".stl,.obj"
+                  onChange={handleUpload}
+                  className="hidden"
+                />
+              </label>
+              <p className="mt-2 text-sm text-gray-500">Supported formats: <span className="font-medium text-gray-700">.STL, .OBJ</span></p>
             </div>
+
           ) : (
-            <Canvas style={{ width:'100%',height:'100%' }}>
+            <Canvas className="w-full h-full bg-gray-100">
               <ambientLight intensity={0.5} />
-              <pointLight position={[10,10,10]} />
+              <pointLight position={[10, 10, 10]} />
+              <gridHelper args={[20, 20, "#cccccc", "#666666"]} />
+              <axesHelper args={[5]} />
+
               <OrbitControls
                 ref={controlsRef}
                 enableRotate={activeTool === null || activeTool === 'orbit'}
                 enableZoom={activeTool === null || activeTool === 'zoom'}
                 enablePan={activeTool === null || activeTool === 'pan'}
               />
+
               <Model url={fileUrl} type={fileType} />
             </Canvas>
           )}
         </div>
-        
       </div>
 
       {/* Bottom Footer */}
       {uploaded && (
-        <div style={{ width:'100%',padding:'1rem',backgroundColor:'#f0f0f0',display:'flex',justifyContent:'center',gap:'1rem'}}>
-          
-          {/* Reset Button */}
-          <Tooltip message="Reset view and tools">
-            <button onClick={handleReset} style={{padding:'0.5rem',borderRadius:'4px'}}>Reset</button>
+        <div className="flex items-center justify-center gap-4 px-6 py-4 bg-white shadow-md">
+          <Tooltip message="Reset model to original state">
+            <button
+              onClick={handleReset}
+              className={`flex items-center gap-2 px-4 py-2 border border-black rounded-md transition-all ${activeTool === null ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-200'
+                }`}
+            >
+              <RefreshCw size={18} /> Reset
+            </button>
           </Tooltip>
 
-          {/* Orbit / Zoom / Pan Buttons */}
-          {['orbit','zoom'].map((tool)=>(
-            <Tooltip key={tool} message={`Activate ${tool}`}>
+          {[
+            { tool: 'orbit', label: 'Orbit', icon: <Orbit size={18} />, message: 'Activate Orbit' },
+            { tool: 'zoom', label: 'Zoom', icon: <ZoomIn size={18} />, message: 'Activate Zoom' },
+            { tool: 'pan', label: 'Pan', icon: <Move size={18} />, message: 'Right-click and drag to Pan' }
+          ].map(({ tool, label, icon, message }) => (
+            <Tooltip key={tool} message={message}>
               <button
-                onClick={()=>handleToolChange(tool)}
-                style={{
-                  padding:'0.5rem',
-                  borderRadius:'4px',
-                  border:`${activeTool===tool?'2px solid blue':'1px solid #ccc'}`,
-                  backgroundColor:`${activeTool===tool?'#e6f7ff':'#fff'}`
-                }}
+                onClick={() => handleToolChange(tool)}
+                className={`flex items-center gap-2 px-4 py-2 border border-black rounded-md transition-all ${activeTool === tool ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-200'
+                  }`}
               >
-                {tool.charAt(0).toUpperCase()+tool.slice(1)}
+                {icon} {label}
               </button>
             </Tooltip>
           ))}
-
-          {/* Pan Button with Tooltip */}
-          <Tooltip message="Hold right mouse button and drag to pan the model">
-            <button
-              onClick={() => handleToolChange('pan')}
-              style={{
-                padding: '0.5rem',
-                borderRadius: '4px',
-                border: activeTool === 'pan' ? '2px solid blue' : '1px solid #ccc',
-                backgroundColor: activeTool === 'pan' ? '#e6f7ff' : '#fff',
-              }}
-            >
-              Pan
-            </button>
-          </Tooltip>
-          
         </div>
       )}
-      
     </div>
   );
 }

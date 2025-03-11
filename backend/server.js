@@ -113,6 +113,12 @@ app.delete('/models/:filename', (req, res) => {
   }
 });
 
+const handleModelClick = (model) => {
+  setFileUrl(model.url); // Ensure this is a valid URL
+  setFileType(model.originalname.split('.').pop().toLowerCase());
+  setUploaded(true);
+};
+
 // Serve a specific model by filename
 app.get('/uploads/:filename', (req, res) => {
   const filename = req.params.filename;
